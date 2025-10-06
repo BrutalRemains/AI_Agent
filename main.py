@@ -1,19 +1,45 @@
 import os
+import sys
+from google.genai import types, Client
 from dotenv import load_dotenv
 from google import genai
 
-load_dotenv()
-api_key = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
+def main():
+    load_dotenv()
+    
+    api_key = os.environ.get("GEMINI_API_KEY")
+    client = genai.Client(api_key=api_key)
 
-response = client.models.generate_content(model= "gemini-2.0-flash-001", contents= "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum.")
-prompt_tokens = response.usage_metadata.prompt_token_count
-response_tokens = response.usage_metadata.candidates_token_count
-print(response.text)
-print(f"Prompt tokens: {prompt_tokens}\n Response tokens: {response_tokens}")
-# def main():
-#     print("Hello from ai-agent!")
+    
+    if len(sys.argv) < 2:
+        print("Usage: python main.py '<your prompt here>'")
+        sys.exit(1)
+
+    verbose = False #verbose logic
+    if "--verbose" in sys.argv:
+        verbose = True
+        sys.argv.remove("--verbose")
+    
+    user_prompt = " ".join(sys.argv[1:])
+    messages = [types.Content(role="user", parts=[types.Part(text=user_prompt)]),]
+    response = client.models.generate_content(
+        model = "gemini-2.0-flash-001", 
+        contents = messages)
+    if verbose:
+        print(f"User prompt: {user_prompt} ")
+    print(response.text)
+    
+    
+    
+    prompt_tokens = response.usage_metadata.prompt_token_count
+    response_tokens = response.usage_metadata.candidates_token_count    
+
+    if verbose:
+        print(f"Prompt tokens: {prompt_tokens}\nResponse tokens: {response_tokens}")
 
 
-# if __name__ == "__main__":
-#     main()
+
+
+
+if __name__ == "__main__":
+    main()
