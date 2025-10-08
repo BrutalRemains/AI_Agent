@@ -11,7 +11,7 @@ def main():
     client = genai.Client(api_key=api_key)
 
     
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2: 
         print("Usage: python main.py '<your prompt here>'")
         sys.exit(1)
 
