@@ -1,5 +1,5 @@
 import os 
-from functions import config
+from . import config
 def is_sub_path(working_directory, path):
     wd = os.path.realpath(working_directory)
     p = os.path.realpath(path)
@@ -20,3 +20,4 @@ def get_file_content(working_directory, file_path):
     if len(data) <= config.MAX_CHARS:
         return data
     return data[:config.MAX_CHARS] + f'[...File "{file_path}" truncated at {config.MAX_CHARS} characters]'
+
