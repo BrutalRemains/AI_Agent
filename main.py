@@ -36,30 +36,41 @@ All paths you provide should be relative to the working directory. You do not ne
 """
     user_prompt = " ".join(sys.argv[1:])
     messages = [types.Content(role="user", parts=[types.Part(text=user_prompt)]),]
-    response = client.models.generate_content(
-        model = "gemini-2.0-flash-001", 
-        contents = messages,
-        config=types.GenerateContentConfig(
-            tools=[available_functions], system_instruction=system_prompt))
-    if verbose:
-        print(f"User prompt: {user_prompt} ")
     
+    # if verbose:
+    #     print(f"User prompt: {user_prompt} ")
     
-    
-    if len(response.function_calls) > 0:
-        for f in response.function_calls:
-            results = call_function(f, verbose)
-            if results.parts[0].function_response.response is None:
-                raise Exception("fatal error")
+    for i in range(20):
+        try:
+            response = client.models.generate_content(
+            model = "gemini-2.0-flash-001", 
+            contents = messages,
+            config=types.GenerateContentConfig(
+                tools=[available_functions], system_instruction=system_prompt))
+        
+            for c in response.candidates: 
+                messages.append(c.content)
+            
+            if len(response.function_calls) > 0:
+                for f in response.function_calls:
+                    results = call_function(f, verbose)
+                    if results.parts[0].function_response.response is None:
+                        raise Exception("fatal error")
+                    
+                    if verbose == True:
+                        print(f"-> {results.parts[0].function_response.response['result']}")
+                    if results.role != "user":
+                        results = types.Content(role="user", parts=results.parts)
+                    messages.append(results)
+                continue
             else:
-                if verbose == True:
-                    print(f"-> {results.parts[0].function_response.response['result']}")
-            messages.append(results)
-
-
-    else:
-        print(response.text)
-    
+                if response.text:
+                    print(response.text)
+                    break
+        except Exception as e:
+            if verbose:
+                print(f"error: {e}")
+            break
     
     
     prompt_tokens = response.usage_metadata.prompt_token_count
